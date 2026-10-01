@@ -19,6 +19,19 @@ The project extracts Microsoft-managed gold-layer semantic models into a Fabric 
 - Restricted user-level drillthrough
 - Audited and reconciled daily incremental processing
 
+## Prerequisites
+
+- A directly assigned Fabric Administrator who can access Admin Monitoring
+- Build/query access to all four managed Admin Monitoring semantic models
+- Dataset Execute Queries REST API enabled in tenant settings
+- Contributor or Admin access to the target Fabric workspace
+- An active Fabric capacity supporting Spark, Lakehouse, Direct Lake, and Power BI
+- Lakehouse write access and permission to run child notebooks
+- Power BI Pro/PPU for authors and consumers when using capacity below F64
+- Fabric Spark 3.4+ with built-in Semantic Link and NotebookUtils
+
+See [docs/PREREQUISITES.md](docs/PREREQUISITES.md) for the complete checklist.
+
 ## Architecture
 
 ```mermaid
@@ -124,6 +137,7 @@ See [docs/SCHEMA.md](docs/SCHEMA.md) for the extraction manifest and stored hist
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Prerequisites](docs/PREREQUISITES.md)
 - [Notebook walkthrough](docs/NOTEBOOKS.md)
 - [Lakehouse schema](docs/SCHEMA.md)
 - [Operations runbook](docs/OPERATIONS.md)
