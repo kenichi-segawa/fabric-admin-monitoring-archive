@@ -1,0 +1,92 @@
+/// Fabric and Power BI item inventory from the managed Feature Usage and Adoption model.
+table Items
+	lineageTag: 45c5f03e-1f6c-4391-ad34-2da254fcea8d
+
+	/// Technical item relationship key.
+	column 'Item Key'
+		dataType: int64
+		isHidden
+		isUnique
+		isAvailableInMdx: false
+		lineageTag: fa1fb0dd-2948-47b3-aaa9-78e348b292c0
+		summarizeBy: none
+		sourceColumn: indexkey
+
+	/// Stable Fabric item identifier.
+	column 'Item ID'
+		dataType: string
+		isHidden
+		lineageTag: c10fc2dd-27d7-4a0f-97e2-789c65c759fd
+		summarizeBy: none
+		sourceColumn: item_id
+
+	/// Display name of the Fabric item.
+	column 'Item Name'
+		dataType: string
+		lineageTag: 819aa80b-1187-4473-98a0-9dc0ab475a6e
+		sourceColumn: item_name
+
+	/// Fabric item type such as Report, SemanticModel, Lakehouse, or Notebook.
+	column 'Item Type'
+		dataType: string
+		lineageTag: 1eb92627-cf83-4ff4-84dc-e5a9c4f59243
+		sourceColumn: item_type
+
+	/// More specific item subtype when available.
+	column 'Item Subtype'
+		dataType: string
+		lineageTag: 7ee437a8-70f9-439f-a2b6-06dc25d120dc
+		sourceColumn: item_sub_type
+
+	/// Workspace containing the item.
+	column 'Workspace ID'
+		dataType: string
+		isHidden
+		lineageTag: a8f7a5cc-f4cd-4bb5-bf53-28a53a2d634d
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	/// Certification or promotion status.
+	column Endorsement
+		dataType: string
+		lineageTag: c8db7458-68c8-4520-8de0-9bbdb5cf479c
+		sourceColumn: endorsement
+
+	/// Sensitivity label applied to the item.
+	column 'Sensitivity Label'
+		dataType: string
+		lineageTag: 1fb620d7-bc6e-4605-bd35-df8973aac6b1
+		sourceColumn: sensitivity_label
+
+	/// Managed-model activity classification.
+	column 'Activity Status'
+		dataType: string
+		lineageTag: 36a06d35-6118-49f5-a4a9-69c5d99f9b5b
+		sourceColumn: activity_status
+
+	/// Whether the managed inventory marks the item deleted.
+	column Deleted
+		dataType: string
+		lineageTag: a900eb8d-2b7e-4a63-8d3d-03e67b8cdcc0
+		sourceColumn: is_deleted
+
+	/// Link to the Fabric item.
+	column 'Item URL'
+		dataType: string
+		lineageTag: d0182358-f7cc-4ef1-b3a3-694371128c65
+		dataCategory: WebUrl
+		sourceColumn: url
+
+	/// Whether the item remains in the current archive snapshot.
+	column 'Current Item'
+		dataType: boolean
+		isHidden
+		lineageTag: 2099f2c9-36f0-4dc3-8e32-b92e4ddfc81e
+		sourceColumn: _is_current
+
+	partition Items = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__fabric_items
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

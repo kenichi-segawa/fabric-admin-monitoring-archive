@@ -1,0 +1,40 @@
+/// Fabric and Power BI capacity dimension.
+table Capacities
+	lineageTag: 3838c07d-3ff7-49d6-8663-445a763cdc2a
+
+	/// Technical capacity relationship key.
+	column 'Capacity Key'
+		dataType: int64
+		isHidden
+		isUnique
+		isAvailableInMdx: false
+		lineageTag: 29184ac3-8111-48bc-92b4-c02abeccd82c
+		summarizeBy: none
+		sourceColumn: capacitykeyindex
+
+	/// Stable capacity identifier.
+	column 'Capacity ID'
+		dataType: string
+		isHidden
+		lineageTag: f27cfbd9-909f-4316-9de8-c35abe61b7e5
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	/// Display name of the capacity.
+	column 'Capacity Name'
+		dataType: string
+		lineageTag: 5ec63400-aded-4737-8000-474b1725d3b3
+		sourceColumn: capacity_name
+
+	/// Capacity SKU.
+	column 'Capacity SKU'
+		dataType: string
+		lineageTag: 8340b031-b5cd-4948-aac5-0c24da6f0399
+		sourceColumn: capacity_sku
+
+	partition Capacities = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__capacity
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

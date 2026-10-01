@@ -1,0 +1,25 @@
+/// Sensitivity-label lookup from the OneLake Governance managed model.
+table 'Sensitivity Labels'
+	lineageTag: 34b5250b-7ff8-49dc-9bc2-6ffea9d9c2e5
+
+	/// Sensitivity label identifier.
+	column 'Label ID'
+		dataType: string
+		isHidden
+		isUnique
+		lineageTag: fad5166a-b3f3-4dde-8f6c-2e7d4acde441
+		summarizeBy: none
+		sourceColumn: label_id
+
+	/// Sensitivity label display name.
+	column 'Label Name'
+		dataType: string
+		lineageTag: ab7aeaff-6ec3-40f4-8304-933d924bccf2
+		sourceColumn: label_name
+
+	partition 'Sensitivity Labels' = entity
+		mode: directLake
+		source
+			entityName: onelake_catalog_governance_for_admins__sensitivity_labels
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

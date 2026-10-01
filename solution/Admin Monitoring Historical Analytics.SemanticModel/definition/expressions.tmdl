@@ -1,0 +1,7 @@
+/// Shared OneLake source for the AdminMonitoringArchive Lakehouse.
+expression 'DirectLake - Admin Monitoring Historical Analytics' =
+		let
+		    Source = AzureStorage.DataLake("https://onelake.dfs.fabric.microsoft.com/YOUR_WORKSPACE_ID/YOUR_LAKEHOUSE_ID", [HierarchicalNavigation=true])
+		in
+		    Source
+	lineageTag: 48c14d11-f7ff-4d5c-87f0-59f8845e9f87

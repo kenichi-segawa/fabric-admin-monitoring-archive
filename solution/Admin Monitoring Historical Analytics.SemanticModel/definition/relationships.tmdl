@@ -1,0 +1,32 @@
+relationship 'Usage Activity to Workspaces'
+	fromColumn: 'Usage Activity'.'Workspace Key'
+	toColumn: Workspaces.'Workspace Key'
+
+relationship 'Usage Activity to Capacities'
+	fromColumn: 'Usage Activity'.'Capacity Key'
+	toColumn: Capacities.'Capacity Key'
+
+relationship 'Usage Activity to Users'
+	fromColumn: 'Usage Activity'.'User Key'
+	toColumn: Users.'User Key'
+
+relationship 'Usage Activity to Items'
+	fromColumn: 'Usage Activity'.'Item Key'
+	toColumn: Items.'Item Key'
+
+relationship 'Usage Activity to Date'
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Usage Activity'.'Creation Date'
+	toColumn: Date.Date
+
+relationship 'Governance Items to Workspaces'
+	fromColumn: 'Governance Items'.'Workspace ID'
+	toColumn: Workspaces.'Workspace ID'
+
+relationship 'Sharing Items to Workspaces'
+	fromColumn: 'Sharing Items'.'Workspace ID'
+	toColumn: Workspaces.'Workspace ID'
+
+relationship 'Governance Items to Sensitivity Labels'
+	fromColumn: 'Governance Items'.'Sensitivity Label ID'
+	toColumn: 'Sensitivity Labels'.'Label ID'

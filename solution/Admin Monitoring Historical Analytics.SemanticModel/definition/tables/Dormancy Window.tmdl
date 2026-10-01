@@ -1,0 +1,24 @@
+/// Disconnected Direct Lake selector for report inactivity thresholds.
+table 'Dormancy Window'
+	lineageTag: 8ec4bc4a-6de2-4dde-89e6-cf642f5835cc
+
+	/// Number of days used as the inactivity threshold.
+	column Days
+		dataType: int64
+		isHidden
+		lineageTag: b07a7814-4a7a-46d5-b9fe-997f8307b036
+		summarizeBy: none
+		sourceColumn: days
+
+	/// Human-readable inactivity threshold.
+	column Window
+		dataType: string
+		lineageTag: b13680a1-7232-4a44-9494-89c7a16bdb03
+		sourceColumn: window
+
+	partition 'Dormancy Window' = entity
+		mode: directLake
+		source
+			entityName: dormancy_window
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

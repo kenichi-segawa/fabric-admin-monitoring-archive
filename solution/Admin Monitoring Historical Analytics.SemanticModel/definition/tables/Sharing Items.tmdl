@@ -1,0 +1,190 @@
+/// Sharing, sensitivity, and DLP attributes for Fabric items from the Content Sharing managed model.
+table 'Sharing Items'
+	lineageTag: 4d2ef02c-1095-4b0e-bed3-d1fcb79f7671
+
+	/// Current items represented in the sharing inventory.
+	measure 'Sharing Inventory Items' =
+			CALCULATE(
+			    DISTINCTCOUNT('Sharing Items'[Item ID]),
+			    KEEPFILTERS('Sharing Items'[Current Item] = TRUE())
+			)
+		formatString: #,##0
+		displayFolder: Sharing and Risk
+		lineageTag: a5db34ef-7974-4cfe-b535-d3bd273da1b0
+
+	/// Current items with direct-user access, group access, or whole-organization sharing.
+	measure 'Shared Items' =
+			CALCULATE(
+			    DISTINCTCOUNT('Sharing Items'[Item ID]),
+			    KEEPFILTERS('Sharing Items'[Current Item] = TRUE()),
+			    FILTER(
+			        'Sharing Items',
+			        COALESCE('Sharing Items'[User Access Count], 0) > 0
+			            || COALESCE('Sharing Items'[Group Access Count], 0) > 0
+			            || 'Sharing Items'[Shared With Whole Organization] IN { "Yes", "True", "1" }
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Sharing and Risk
+		lineageTag: 458e183a-af88-459e-8c5e-2c45f6b5d46d
+
+	/// Current items reported as shared with the whole organization.
+	measure 'Whole-Organization Shared Items' =
+			CALCULATE(
+			    DISTINCTCOUNT('Sharing Items'[Item ID]),
+			    KEEPFILTERS('Sharing Items'[Current Item] = TRUE()),
+			    KEEPFILTERS('Sharing Items'[Shared With Whole Organization] IN { "Yes", "True", "1" })
+			)
+		formatString: #,##0
+		displayFolder: Sharing and Risk
+		lineageTag: 838f3be6-572b-4b57-b52e-0bede7f0d432
+
+	/// Current items with an explicit DLP policy violation; returns zero when none are present.
+	measure 'DLP Violations' =
+			COALESCE(
+			    CALCULATE(
+			        DISTINCTCOUNT('Sharing Items'[Item ID]),
+			        KEEPFILTERS('Sharing Items'[Current Item] = TRUE()),
+			        KEEPFILTERS(NOT ISBLANK('Sharing Items'[DLP Policy Violation])),
+			        KEEPFILTERS(NOT 'Sharing Items'[DLP Policy Violation] IN { "No", "None", "False", "0", "NA", "N/A", "Not Applicable" })
+			    ),
+			    0
+			)
+		formatString: #,##0
+		displayFolder: Sharing and Risk
+		lineageTag: b8256a1d-5beb-4e58-8e47-4d356448f514
+
+	/// Current items with whole-organization sharing or an explicit DLP policy violation.
+	measure 'Governance Risk Items' =
+			CALCULATE(
+			    DISTINCTCOUNT('Sharing Items'[Item ID]),
+			    KEEPFILTERS('Sharing Items'[Current Item] = TRUE()),
+			    FILTER(
+			        'Sharing Items',
+			        'Sharing Items'[Shared With Whole Organization] IN { "Yes", "True", "1" }
+			            || (
+			                NOT ISBLANK('Sharing Items'[DLP Policy Violation])
+			                && NOT 'Sharing Items'[DLP Policy Violation] IN { "No", "None", "False", "0", "NA", "N/A", "Not Applicable" }
+			            )
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Sharing and Risk
+		lineageTag: f2cc7a92-9494-4dcb-92b9-6ec4eb8c4c3d
+
+	/// Dynamic alt text for sharing and governance risk visuals.
+	measure 'Governance Risk Alt Text' =
+			VAR _wholeOrg = FORMAT([Whole-Organization Shared Items], "#,##0")
+			VAR _dlp = FORMAT([DLP Violations], "#,##0")
+			RETURN
+			    _wholeOrg & " items are shared with the whole organization and " & _dlp & " items have reported DLP violations."
+		formatString: @
+		displayFolder: Accessibility
+		lineageTag: 176abaad-82d3-401b-8d61-6958bf456285
+
+	/// Stable Fabric item identifier.
+	column 'Item ID'
+		dataType: string
+		isHidden
+		lineageTag: 77a44345-8c98-40d8-b188-bd661ef78c6a
+		summarizeBy: none
+		sourceColumn: item_id
+
+	/// Display name of the shared item.
+	column 'Item Name'
+		dataType: string
+		lineageTag: 59eba0d9-a1c7-4b8a-82aa-4a1e4038db1e
+		sourceColumn: item_name
+
+	/// Fabric item type.
+	column 'Item Type'
+		dataType: string
+		lineageTag: 38dfd02f-1770-4590-90eb-167ec9668395
+		sourceColumn: item_type
+
+	/// Workspace containing the item.
+	column 'Workspace ID'
+		dataType: string
+		isHidden
+		lineageTag: 63b60bfe-aece-44f5-864e-90dcee706fa6
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	/// Number of users with direct access.
+	column 'User Access Count'
+		dataType: int64
+		lineageTag: 745bbcf8-caef-4e43-9468-f6c3b5c24335
+		summarizeBy: none
+		sourceColumn: user_access_count
+
+	/// Number of groups with access.
+	column 'Group Access Count'
+		dataType: int64
+		lineageTag: 49b50ff9-96ad-4689-8c1c-7fbf2a7f7cb1
+		summarizeBy: none
+		sourceColumn: group_access_count
+
+	/// Certification or promotion status.
+	column Endorsement
+		dataType: string
+		lineageTag: 947866e4-1078-4d6a-b478-715067e9ffd1
+		sourceColumn: endorsement
+
+	/// Whether the item is shared with the entire organization.
+	column 'Shared With Whole Organization'
+		dataType: string
+		lineageTag: 8457fb21-25be-4388-9bc0-572bdd236352
+		sourceColumn: is_shared_with_whole_org
+
+	/// Whether a DLP policy violation is reported.
+	column 'DLP Policy Violation'
+		dataType: string
+		lineageTag: 22ff6481-a379-4acd-abaa-5d6ef6c946d1
+		sourceColumn: dlp_policy_violation
+
+	/// Sensitivity label applied to the item.
+	column 'Sensitivity Label'
+		dataType: string
+		lineageTag: d4850600-4b04-4f5b-9e95-876cd31528d5
+		sourceColumn: sensitivity_label
+
+	/// Whether the managed inventory marks the item deleted.
+	column Deleted
+		dataType: string
+		lineageTag: 24f04c96-3b62-44ad-8fb2-df308d54c846
+		sourceColumn: is_deleted
+
+	/// Most recent item modification timestamp.
+	column 'Modified DateTime'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 83b82b3e-d977-40f2-bd63-cd7504a35fe9
+		sourceColumn: modified_datetime
+
+	/// Most recent DLP scan timestamp.
+	column 'Last DLP Scan DateTime'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4c3ca519-e05c-4f42-ad4d-99e3db605d94
+		sourceColumn: last_dlp_scan_datetime
+
+	/// Link to the shared item.
+	column 'Item URL'
+		dataType: string
+		lineageTag: 31e5438a-707f-4ea4-a063-568fb7927ec2
+		dataCategory: WebUrl
+		sourceColumn: url
+
+	/// Whether the row remains in the current managed snapshot.
+	column 'Current Item'
+		dataType: boolean
+		isHidden
+		lineageTag: d5c46930-6aa5-4ac2-bfb1-83a3de981e37
+		sourceColumn: _is_current
+
+	partition 'Sharing Items' = entity
+		mode: directLake
+		source
+			entityName: content_sharing__fabric_items
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

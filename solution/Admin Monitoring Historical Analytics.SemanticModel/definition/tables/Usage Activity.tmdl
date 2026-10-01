@@ -1,0 +1,477 @@
+/// One row per distinct managed-model activity signature, with duplicate multiplicity preserved in Activity Count. Grain is activity signature by time, user, workspace, item, and operation.
+table 'Usage Activity'
+	lineageTag: 498adb39-c41f-436f-b1f1-05f23ad00fc7
+
+	/// Total archived activity events, including duplicate multiplicity preserved during extraction.
+	measure 'Total Activities' = SUM('Usage Activity'[Activity Count])
+		formatString: #,##0
+		displayFolder: Adoption
+		lineageTag: 8e571ac6-e2f0-4d49-ad84-80aecb55fa8f
+
+	/// Total ViewReport activities in the current filter context.
+	measure 'Report Views' =
+			CALCULATE(
+			    [Total Activities],
+			    KEEPFILTERS('Usage Activity'[Operation] = "ViewReport")
+			)
+		formatString: #,##0
+		displayFolder: Adoption
+		lineageTag: e095e95b-8602-4030-b01f-e467e93a8270
+
+	/// Distinct users represented in activity rows under the current filters.
+	measure 'Active Users' = DISTINCTCOUNT('Usage Activity'[User Key])
+		formatString: #,##0
+		displayFolder: Adoption
+		lineageTag: b9e00fa0-cd4a-45b5-a539-a8e4ec9aaaa7
+
+	/// Distinct workspaces represented in activity rows under the current filters.
+	measure 'Active Workspaces' = DISTINCTCOUNT('Usage Activity'[Workspace Key])
+		formatString: #,##0
+		displayFolder: Adoption
+		lineageTag: 9978f386-c761-4cb8-8122-ffefc87d21f7
+
+	/// Distinct items represented in activity rows under the current filters.
+	measure 'Active Items' = DISTINCTCOUNT('Usage Activity'[Item Key])
+		formatString: #,##0
+		displayFolder: Adoption
+		lineageTag: af0085b5-d05e-430e-8e11-d0051aef7ccc
+
+	/// Current report inventory count.
+	measure 'Total Reports' =
+			CALCULATE(
+			    DISTINCTCOUNT('Items'[Item ID]),
+			    KEEPFILTERS('Items'[Item Type] = "Report"),
+			    KEEPFILTERS('Items'[Current Item] = TRUE())
+			)
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 4f76ae9e-00f5-4fb8-a000-71a8e90c1ff5
+
+	/// Distinct reports with at least one ViewReport activity in the current filter context.
+	measure 'Viewed Reports' =
+			CALCULATE(
+			    DISTINCTCOUNT('Usage Activity'[Item Key]),
+			    KEEPFILTERS('Usage Activity'[Operation] = "ViewReport")
+			)
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: fd39b955-0516-4c05-b473-995488bf402d
+
+	/// Share of the current report inventory with at least one observed report view.
+	measure 'Report Adoption Rate' = DIVIDE([Viewed Reports], [Total Reports])
+		formatString: 0.0%
+		displayFolder: Report Lifecycle
+		lineageTag: a6e15860-9a3e-42f3-bbf8-f715944a476b
+
+	/// Most recent activity date in the current filter context.
+	measure 'Last Activity Date' = MAX('Usage Activity'[Creation Date])
+		formatString: m/d/yyyy
+		displayFolder: Time and Coverage
+		lineageTag: 75db7a67-be25-4915-a2a8-149ebdd9b28d
+
+	/// Days between the latest filtered activity and the archive's latest available activity date.
+	measure 'Days Since Last Activity' =
+			VAR _lastActivity = [Last Activity Date]
+			VAR _dataThrough = [Data Through Date]
+			RETURN
+			    IF(
+			        NOT ISBLANK(_lastActivity) && NOT ISBLANK(_dataThrough),
+			        DATEDIFF(_lastActivity, _dataThrough, DAY)
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: c108de96-eef3-4f5d-9a79-5a8bdbc56ea4
+
+	/// Latest activity date available in the archive, independent of date, item, workspace, user, and capacity filters.
+	measure 'Data Through Date' =
+			CALCULATE(
+			    MAX('Usage Activity'[Creation Date]),
+			    REMOVEFILTERS('Date'),
+			    REMOVEFILTERS('Items'),
+			    REMOVEFILTERS('Workspaces'),
+			    REMOVEFILTERS('Users'),
+			    REMOVEFILTERS('Capacities')
+			)
+		formatString: m/d/yyyy
+		displayFolder: Time and Coverage
+		lineageTag: d063f451-15f4-4a35-beac-f352ae3d105b
+
+	/// Number of calendar dates currently available in the model.
+	measure 'Archive Days' =
+			CALCULATE(
+			    DISTINCTCOUNT('Date'[Date]),
+			    REMOVEFILTERS('Date')
+			)
+		formatString: #,##0
+		displayFolder: Time and Coverage
+		lineageTag: 7728950c-2886-4b45-bc4d-293b45f1b212
+
+	/// Report views during the latest seven available days.
+	measure 'Report Views 7D' =
+			VAR _endDate = [Data Through Date]
+			RETURN
+			    CALCULATE(
+			        [Report Views],
+			        DATESINPERIOD('Date'[Date], _endDate, -7, DAY)
+			    )
+		formatString: #,##0
+		displayFolder: Rolling Activity
+		lineageTag: 0b5d6d38-d545-413f-9e7f-ea44609c124b
+
+	/// Report views during the latest 30 available days.
+	measure 'Report Views 30D' =
+			VAR _endDate = [Data Through Date]
+			RETURN
+			    CALCULATE(
+			        [Report Views],
+			        DATESINPERIOD('Date'[Date], _endDate, -30, DAY)
+			    )
+		formatString: #,##0
+		displayFolder: Rolling Activity
+		lineageTag: b0d38fe9-6465-42e2-b67e-06fbac74f515
+
+	/// Report views during the latest 90 available days; uses available history while the archive matures.
+	measure 'Report Views 90D' =
+			VAR _endDate = [Data Through Date]
+			RETURN
+			    CALCULATE(
+			        [Report Views],
+			        DATESINPERIOD('Date'[Date], _endDate, -90, DAY)
+			    )
+		formatString: #,##0
+		displayFolder: Rolling Activity
+		lineageTag: 2122466e-5a01-4c7b-8c2f-9366947860f8
+
+	/// Report views during the latest 365 available days; uses available history while the archive matures.
+	measure 'Report Views 365D' =
+			VAR _endDate = [Data Through Date]
+			RETURN
+			    CALCULATE(
+			        [Report Views],
+			        DATESINPERIOD('Date'[Date], _endDate, -365, DAY)
+			    )
+		formatString: #,##0
+		displayFolder: Rolling Activity
+		lineageTag: 9a17173a-189c-49f6-a5fc-f342b7f8672f
+
+	/// Current reports with no observed view in the latest 30 available days.
+	measure 'Inactive Reports 30D' =
+			VAR _cutoff = [Data Through Date] - 30
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			            RETURN ISBLANK(_lastView) || _lastView < _cutoff
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: cfe899e2-5363-4ade-97f7-9b6ec8ee2753
+
+	/// Current reports with no observed view in the latest 90 available days.
+	measure 'Inactive Reports 90D' =
+			VAR _cutoff = [Data Through Date] - 90
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			            RETURN ISBLANK(_lastView) || _lastView < _cutoff
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 598b25ed-e7e1-49ba-9101-f89178f12f71
+
+	/// Current reports with no observed view in the latest 180 available days.
+	measure 'Inactive Reports 180D' =
+			VAR _cutoff = [Data Through Date] - 180
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			            RETURN ISBLANK(_lastView) || _lastView < _cutoff
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: bdaa992d-2c1f-4924-a718-6393755b8363
+
+	/// Current reports with no observed view in the latest 365 available days.
+	measure 'Inactive Reports 365D' =
+			VAR _cutoff = [Data Through Date] - 365
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			            RETURN ISBLANK(_lastView) || _lastView < _cutoff
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 7b8e1cc0-e47b-42d1-9be2-4ee12e99c0db
+
+	/// Current reports with no report view observed anywhere in retained archive history.
+	measure 'Reports Never Viewed' =
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            ISBLANK(CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport")))
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 6e50ac7a-b8ce-46ef-9aa8-25853852550a
+
+	/// Average number of days since the latest observed report view among reports that have been viewed.
+	measure 'Average Days Since Last View' =
+			VAR _dataThrough = [Data Through Date]
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    AVERAGEX(
+			        _reports,
+			        VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			        RETURN IF(NOT ISBLANK(_lastView), DATEDIFF(_lastView, _dataThrough, DAY))
+			    )
+		formatString: #,##0.0
+		displayFolder: Report Lifecycle
+		lineageTag: 814e5789-4380-43db-b0ce-0c23fddf9764
+
+	/// Activities for the user selected on the restricted drillthrough page.
+	measure 'Current User Activities' =
+			CALCULATE(
+			    SUM('Usage Activity'[Activity Count]),
+			    KEEPFILTERS(NOT ISBLANK('Usage Activity'[User Key]))
+			)
+		formatString: #,##0
+		displayFolder: Restricted User Detail
+		lineageTag: 0583b1ab-4287-48c1-a455-0182d3e940fe
+
+	/// Report views for the user selected on the restricted drillthrough page.
+	measure 'Current User Report Views' =
+			CALCULATE(
+			    SUM('Usage Activity'[Activity Count]),
+			    KEEPFILTERS(NOT ISBLANK('Usage Activity'[User Key])),
+			    KEEPFILTERS('Usage Activity'[Operation] = "ViewReport")
+			)
+		formatString: #,##0
+		displayFolder: Restricted User Detail
+		lineageTag: 30b2b11c-23ee-4307-908b-508992b808f8
+
+	/// Dynamic alt text for activity trend visuals.
+	measure 'Activity Trend Alt Text' =
+			VAR _activities = FORMAT([Total Activities], "#,##0")
+			VAR _views = FORMAT([Report Views], "#,##0")
+			VAR _through = FORMAT([Data Through Date], "mmmm d, yyyy")
+			RETURN
+			    "Tenant activity totals " & _activities & " events and " & _views & " report views through " & _through & "."
+		formatString: @
+		displayFolder: Accessibility
+		lineageTag: 22783310-e44f-45b5-a801-e1971878e8a7
+
+	/// Dynamic alt text for inactivity visuals.
+	measure 'Inactivity Alt Text' =
+			VAR _inactive = FORMAT([Inactive Reports Selected Window], "#,##0")
+			VAR _days = FORMAT([Selected Dormancy Days], "#,##0")
+			RETURN
+			    _inactive & " current reports have no observed view within the selected " & _days & " day window."
+		formatString: @
+		displayFolder: Accessibility
+		lineageTag: 375d370a-9348-46a9-a187-1fa64dccbaa0
+
+	/// Selected inactivity threshold, defaulting to 90 days.
+	measure 'Selected Dormancy Days' = SELECTEDVALUE('Dormancy Window'[Days], 90)
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 8ba458be-a2dc-448d-b659-0f2cc8909f87
+
+	/// Current reports inactive for the selected dormancy threshold.
+	measure 'Inactive Reports Selected Window' =
+			VAR _days = [Selected Dormancy Days]
+			VAR _cutoff = [Data Through Date] - _days
+			VAR _reports =
+			    CALCULATETABLE(
+			        VALUES('Items'[Item ID]),
+			        KEEPFILTERS('Items'[Item Type] = "Report"),
+			        KEEPFILTERS('Items'[Current Item] = TRUE())
+			    )
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            _reports,
+			            VAR _lastView = CALCULATE([Last Activity Date], KEEPFILTERS('Usage Activity'[Operation] = "ViewReport"))
+			            RETURN ISBLANK(_lastView) || _lastView < _cutoff
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Report Lifecycle
+		lineageTag: 61f779aa-d5f2-4738-8d97-fa59dbe1d4eb
+
+	/// UTC timestamp when the activity occurred.
+	column 'Creation Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8a0a79de-062c-4bfc-a49a-4b61e7fe4e37
+		sourceColumn: creation_time
+
+	/// UTC activity date used for time intelligence.
+	column 'Creation Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: b9f08f75-fffc-454d-a592-904b56631379
+		sourceColumn: creation_date
+
+	/// Power BI or Fabric activity operation.
+	column Operation
+		dataType: string
+		lineageTag: 8e5bc033-ee97-4814-b68c-2c04bea4b695
+		sourceColumn: operation
+
+	/// Method used to consume the report or item.
+	column 'Consumption Method'
+		dataType: string
+		lineageTag: f997a364-1a32-4ba0-9e45-270101111613
+		sourceColumn: consumption_method
+
+	/// Distribution channel associated with the activity.
+	column 'Distribution Method'
+		dataType: string
+		lineageTag: 5f12e136-228f-48ed-8ad2-5b4c5c494c5d
+		sourceColumn: distribution_method
+
+	/// Reported outcome of the activity.
+	column 'Result Status'
+		dataType: string
+		lineageTag: 085259af-78e6-467b-811c-0d0fed2b2d98
+		sourceColumn: result_status
+
+	/// Number of identical source events represented by this compacted archive row.
+	column 'Activity Count'
+		dataType: int64
+		isHidden
+		lineageTag: 1f0031a8-6fda-45fc-868b-03fc730d9697
+		summarizeBy: sum
+		sourceColumn: _duplicate_count
+
+	/// Technical workspace relationship key.
+	column 'Workspace Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: c4b913c8-9a5e-4013-9b0a-ef04093e3808
+		summarizeBy: none
+		sourceColumn: workspacekeyindex
+
+	/// Technical capacity relationship key.
+	column 'Capacity Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 54ab5fda-d7e5-41b8-8f49-92b9dbc5bef9
+		summarizeBy: none
+		sourceColumn: capacitykeyindex
+
+	/// Technical user relationship key.
+	column 'User Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 956acff6-aa04-4950-b4e5-fe469b1a30f2
+		summarizeBy: none
+		sourceColumn: userkeyindex
+
+	/// Technical item relationship key.
+	column 'Item Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: c226145b-3927-4b7a-99fd-8d276f06ecb9
+		summarizeBy: none
+		sourceColumn: objectkeyindex
+
+	/// Technical report key exposed by the managed model.
+	column 'Report Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 8020d78e-6812-4293-af53-9555e5d6032d
+		summarizeBy: none
+		sourceColumn: reportkeyindex
+
+	/// Technical semantic-model key exposed by the managed model.
+	column 'Dataset Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 4505371a-08c9-4857-ab21-dfb37b3f5d5c
+		summarizeBy: none
+		sourceColumn: datasetkeyindex
+
+	/// First archive date on which this row signature was observed.
+	column 'First Seen Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: ff6d782f-f3d8-433f-a826-d89e76e17741
+		sourceColumn: _first_seen_date
+
+	/// Most recent archive date on which this row signature was observed.
+	column 'Last Seen Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: de708242-7354-494c-a467-ca7e2b4fd1ab
+		sourceColumn: _last_seen_date
+
+	/// Indicates whether this row signature remains in the current managed-model snapshot.
+	column 'Current Row'
+		dataType: boolean
+		isHidden
+		lineageTag: 48a5e862-0f7e-451c-a69f-fbe61f824df8
+		sourceColumn: _is_current
+
+	partition 'Usage Activity' = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__audit
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

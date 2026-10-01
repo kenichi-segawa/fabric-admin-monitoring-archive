@@ -1,0 +1,39 @@
+/// User dimension used only for restricted activity drillthrough.
+table Users
+	isHidden
+	lineageTag: af6f397e-d9f2-4eb0-80fa-031f1cb821d3
+
+	/// Technical user relationship key.
+	column 'User Key'
+		dataType: int64
+		isHidden
+		isUnique
+		isAvailableInMdx: false
+		lineageTag: 1d672153-9ddb-4b02-adc7-e778a722693d
+		summarizeBy: none
+		sourceColumn: userkeyindex
+
+	/// User principal name for restricted governance drillthrough.
+	column 'User UPN'
+		dataType: string
+		lineageTag: 8802e64c-f45c-4750-9961-bd238174e885
+		sourceColumn: user_upn
+
+	/// User email address for restricted governance drillthrough.
+	column 'Email Address'
+		dataType: string
+		lineageTag: 6658f873-e249-4092-ab05-9f0cf02bdfa3
+		sourceColumn: email_address
+
+	/// User type classification.
+	column 'User Type'
+		dataType: string
+		lineageTag: ec66faee-971b-430e-b6d2-ec7f34cd0ffe
+		sourceColumn: user_type
+
+	partition Users = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__user
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

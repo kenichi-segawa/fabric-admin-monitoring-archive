@@ -1,0 +1,82 @@
+/// Calendar attributes supplied by the managed Feature Usage and Adoption model.
+table Date
+	lineageTag: a349788b-b2d0-43fa-9c97-d60a2942bac7
+	dataCategory: Time
+
+	/// Calendar date.
+	column Date
+		dataType: dateTime
+		isUnique
+		formatString: Short Date
+		lineageTag: 20271cba-d2df-4bec-b6e7-6434983956aa
+		sourceColumn: date
+
+	/// Calendar year.
+	column Year
+		dataType: int64
+		lineageTag: 0456e294-1978-432f-a242-6059ed74a3a7
+		summarizeBy: none
+		sourceColumn: year
+
+	/// Calendar quarter.
+	column Quarter
+		dataType: string
+		lineageTag: 753c8a90-b868-4820-be43-2b042ba89d38
+		sourceColumn: quarter
+
+	/// Calendar year and month label.
+	column 'Year Month'
+		dataType: string
+		lineageTag: c6a0de73-81a2-4e12-bbeb-eaf08054482a
+		sourceColumn: year_month
+
+	/// Calendar month number used to sort Month Name.
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		lineageTag: 8c212c1c-7ad7-4036-8dca-7dba261d691d
+		summarizeBy: none
+		sourceColumn: month_number
+
+	/// Calendar month name.
+	column 'Month Name'
+		dataType: string
+		lineageTag: f3900954-0bae-48bf-922a-53be80039929
+		sourceColumn: month_name
+		sortByColumn: 'Month Number'
+
+	/// Day of month.
+	column Day
+		dataType: int64
+		lineageTag: e271c7c5-4f9a-4fa0-81fb-28524fc55c70
+		summarizeBy: none
+		sourceColumn: day
+
+	/// Calendar week number.
+	column 'Week Number'
+		dataType: int64
+		lineageTag: 1b47d817-a941-4b65-aeb2-126bb3c0ba0d
+		summarizeBy: none
+		sourceColumn: week_number
+
+	/// Numeric day-of-week sort value.
+	column 'Day of Week'
+		dataType: int64
+		isHidden
+		lineageTag: 4be45a54-c9e7-4851-a697-cba3133422b2
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	/// Day-of-week name.
+	column 'Day Name'
+		dataType: string
+		lineageTag: a41a9fd4-7ab9-4bad-bdaf-bdb7a10c3997
+		sourceColumn: day_name
+		sortByColumn: 'Day of Week'
+
+	partition Date = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__date
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'

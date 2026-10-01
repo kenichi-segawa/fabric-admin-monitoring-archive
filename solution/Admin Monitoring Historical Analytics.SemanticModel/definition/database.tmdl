@@ -1,0 +1,4 @@
+/// Direct Lake semantic model for historical Power BI and Fabric adoption, inactivity, sharing, and governance analytics.
+database 'Admin Monitoring Historical Analytics'
+	compatibilityLevel: 1702
+	language: 1033

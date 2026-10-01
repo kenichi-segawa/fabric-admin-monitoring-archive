@@ -1,0 +1,31 @@
+# Power BI local caches
+.pbi/
+**/.pbi/
+localSettings.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+
+# Temporary and output files
+*.log
+*.tmp
+*.bak
+Thumbs.db
+.DS_Store
+screenshots/
+outputs/
+temp/
+
+# Credentials and local configuration
+.env
+.env.*
+*.pem
+*.pfx
+*.key
+secrets.json
+config.local.json

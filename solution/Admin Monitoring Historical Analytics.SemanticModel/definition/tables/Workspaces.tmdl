@@ -1,0 +1,65 @@
+/// Workspace dimension from the managed Feature Usage and Adoption model.
+table Workspaces
+	lineageTag: f0bef769-7e60-4f6c-974a-512a66dbc380
+
+	/// Technical workspace relationship key.
+	column 'Workspace Key'
+		dataType: int64
+		isHidden
+		isUnique
+		isAvailableInMdx: false
+		lineageTag: 3ee6fc51-1ad4-4175-bfc7-74641ad412f9
+		summarizeBy: none
+		sourceColumn: workspacekeyindex
+
+	/// Stable Power BI or Fabric workspace identifier.
+	column 'Workspace ID'
+		dataType: string
+		isHidden
+		isUnique
+		lineageTag: 450165d7-e47f-4f66-9603-af4c5e378937
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	/// Display name of the workspace.
+	column 'Workspace Name'
+		dataType: string
+		lineageTag: a29d7570-f154-48de-9948-2c95bca68539
+		sourceColumn: workspace_name
+
+	/// Workspace licensing or type classification.
+	column 'Workspace Type'
+		dataType: string
+		lineageTag: ad1994f6-dc28-4bc0-b6c8-dedb0bb6e543
+		sourceColumn: workspace_type
+
+	/// Capacity identifier assigned to the workspace.
+	column 'Capacity ID'
+		dataType: string
+		isHidden
+		lineageTag: ff2253f3-231d-4108-bacb-723b7ecd2a76
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	/// Technical capacity key.
+	column 'Capacity Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: b8be5833-1603-40e4-80dd-bbd38634a6a7
+		summarizeBy: none
+		sourceColumn: capacitykeyindex
+
+	/// Link to the workspace.
+	column 'Workspace URL'
+		dataType: string
+		lineageTag: 0e3a3771-f548-4c8b-bde0-fe3e66002670
+		dataCategory: WebUrl
+		sourceColumn: url
+
+	partition Workspaces = entity
+		mode: directLake
+		source
+			entityName: feature_usage_and_adoption__workspace
+			schemaName: admin_monitoring
+			expressionSource: 'DirectLake - Admin Monitoring Historical Analytics'
